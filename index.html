@@ -3,218 +3,223 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chicken Gun Pro v2.0</title>
+    <title>Chicken Gun Ultra Online</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background: #111; touch-action: none; user-select: none; font-family: 'Arial', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; user-select: none; font-family: 'Arial', sans-serif; }
         
-        /* Загрузочный экран */
-        #loader { position: absolute; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #ffcc00; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* ИНТЕРФЕЙС */
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
+        #hud { position: absolute; top: 15px; left: 15px; }
+        .bar-bg { width: 180px; height: 18px; background: rgba(0,0,0,0.6); border: 2px solid #fff; margin-bottom: 5px; }
+        #hp-fill { width: 100%; height: 100%; background: #ff3300; transition: 0.2s; }
+        .info { color: #fff; font-size: 20px; font-weight: bold; text-shadow: 2px 2px #000; }
 
-        /* Интерфейс */
-        #ui { position: absolute; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none; }
-        #menu { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1500; display: flex; align-items: center; justify-content: center; }
-        .window { background: #ffcc00; padding: 40px; border: 10px solid #fff; border-radius: 30px; text-align: center; width: 300px; box-shadow: 0 20px 0 #b89500; }
+        /* МАГАЗИН */
+        #shop-menu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: #ffcc00; border: 6px solid #fff; border-radius: 15px; z-index: 1000; padding: 20px; pointer-events: auto; text-align: center; }
+        .shop-item { background: #fff; padding: 10px; margin: 10px 0; border: 2px solid #333; display: flex; justify-content: space-between; border-radius: 8px; }
         
-        input { width: 80%; padding: 15px; border-radius: 10px; border: none; font-size: 18px; margin-bottom: 10px; text-align: center; }
-        .btn { padding: 15px 25px; font-size: 20px; font-weight: bold; cursor: pointer; background: #ff3300; color: white; border: none; border-radius: 15px; box-shadow: 0 5px #990000; pointer-events: auto; }
-        .btn:active { transform: translateY(3px); box-shadow: 0 2px #990000; }
+        /* УПРАВЛЕНИЕ */
+        #joy-zone { position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.15); border-radius: 50%; border: 3px solid #fff; pointer-events: auto; }
+        #stick { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); }
+        #fire-btn { position: absolute; bottom: 50px; right: 50px; width: 110px; height: 110px; background: #ff3300; border: 5px solid #fff; border-radius: 50%; color: #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; pointer-events: auto; box-shadow: 0 6px #990000; }
+        #fire-btn:active { transform: scale(0.95); box-shadow: 0 2px #990000; }
+        #shop-btn { position: absolute; top: 15px; right: 15px; padding: 10px 20px; background: #ffcc00; border: 3px solid #fff; border-radius: 8px; pointer-events: auto; font-weight: bold; }
 
-        #joystick { position: absolute; bottom: 50px; left: 50px; width: 140px; height: 140px; background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; }
-        #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 15px rgba(0,0,0,0.3); }
-        #fire { position: absolute; bottom: 60px; right: 60px; width: 120px; height: 120px; background: radial-gradient(#ff5500, #cc2200); border: 6px solid #fff; border-radius: 50%; color: white; font-weight: bold; font-size: 22px; pointer-events: auto; text-shadow: 2px 2px 4px #000; }
-        #stats { position: absolute; top: 20px; left: 20px; color: gold; font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
+        /* ПРИЦЕЛ */
+        #cross { position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+
+        /* ВХОД */
+        #start-screen { position: absolute; width: 100%; height: 100%; background: #222; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p>ЗАГРУЗКА КАРТЫ...</p>
-    </div>
-
-    <div id="menu">
-        <div class="window">
-            <h1 style="margin:0 0 20px 0; color: #ff3300; -webkit-text-stroke: 1px white;">CHICKEN GUN</h1>
-            <input type="text" id="nick" placeholder="ТВОЙ НИК" maxlength="12">
-            <br>
-            <button class="btn" onclick="init('host')">СОЗДАТЬ СЕРВЕР</button>
-            <p style="margin:10px 0; font-weight:bold;">ИЛИ</p>
-            <input type="text" id="join-id" placeholder="ID КОМНАТЫ">
-            <button class="btn" style="background:#2196F3; box-shadow: 0 5px #0d47a1;" onclick="init('join')">ЗАЙТИ К ДРУГУ</button>
-        </div>
+    <div id="start-screen">
+        <h1 style="color:#ffcc00">CHICKEN GUN ONLINE</h1>
+        <input type="text" id="nick" placeholder="НИКНЕЙМ" style="padding:10px; font-size:18px;"><br>
+        <button onclick="boot('host')" style="padding:10px 30px; background:#ff3300; color:#fff; border:none; border-radius:5px;">СОЗДАТЬ</button><br>
+        <input type="text" id="room" placeholder="ID ДЛЯ ВХОДА" style="padding:5px;"><br>
+        <button onclick="boot('join')" style="padding:10px 30px; background:#2196F3; color:#fff; border:none; border-radius:5px;">ЗАЙТИ</button>
     </div>
 
     <div id="ui">
-        <div id="stats">COINS: <span id="c-val">0</span></div>
-        <div id="joystick"><div id="stick"></div></div>
-        <button id="fire">FIRE!</button>
+        <div id="hud">
+            <div class="info">HP</div>
+            <div class="bar-bg"><div id="hp-fill"></div></div>
+            <div class="info">MONEY: <span id="m-val">100</span></div>
+        </div>
+        <div id="cross"></div>
+        <div id="joy-zone"><div id="stick"></div></div>
+        <div id="fire-btn">ОГОНЬ</div>
+        <button id="shop-btn" onclick="toggleShop()">SHOP</button>
     </div>
 
-    <a-scene renderer="antialias: true; colorManagement: true; logarithmicDepthBuffer: true;">
-        <a-assets timeout="30000">
+    <div id="shop-menu">
+        <h2>STORE</h2>
+        <div class="shop-item"><span>Laser Gun</span><button onclick="buy(200)">200</button></div>
+        <div class="shop-item"><span>Mega HP</span><button onclick="buy(150)">150</button></div>
+        <button onclick="toggleShop()" style="margin-top:10px;">Close</button>
+    </div>
+
+    <a-scene renderer="antialias: true; colorManagement: true;">
+        <a-assets>
             <a-asset-item id="map-asset" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
             <a-asset-item id="chicken-asset" src="./chicken_gun.glb"></a-asset-item>
         </a-assets>
 
         <a-sky color="#87CEEB"></a-sky>
         <a-light type="ambient" intensity="0.7"></a-light>
-        <a-light type="directional" position="5 10 5" intensity="0.8"></a-light>
+        <a-light type="directional" position="2 10 2" intensity="0.8"></a-light>
 
-        <a-entity id="main-map" gltf-model="#map-asset" position="0 0 0"></a-entity>
+        <a-entity gltf-model="#map-asset" position="0 0 0"></a-entity>
 
         <a-entity id="rig" position="0 0 10">
-            <a-entity id="camera" camera position="0 1.6 0" look-controls="enabled: false">
+            <a-entity id="camera" camera position="0 1.7 0" raycaster="objects: .player-model; far: 100" look-controls="enabled: false">
                 <a-entity id="weapon" position="0.35 -0.4 -0.7">
-                    <a-box width="0.1" height="0.15" depth="0.5" color="#222"></a-box>
+                    <a-box width="0.1" height="0.1" depth="0.5" color="#222">
+                        <a-light id="flash" type="point" intensity="0" color="yellow" position="0 0 -0.5"></a-light>
+                    </a-box>
                     <a-cylinder rotation="90 0 0" position="0 0.05 -0.3" radius="0.03" height="0.6" color="#000"></a-cylinder>
                 </a-entity>
             </a-camera>
         </a-entity>
 
-        <a-entity id="network-players"></a-entity>
+        <a-entity id="players"></a-entity>
     </a-scene>
 
     <script>
-        let peer, conn, myNick, moveX = 0, moveZ = 0, rotY = 0, rotX = 0;
-        let isReady = false;
+        let peer, conn, myNick, moveX=0, moveZ=0, lookY=0, lookX=0;
+        let hp = 100, money = 100, isDead = false;
+        const rig = document.getElementById('rig');
+        const cam = document.getElementById('camera');
 
-        // Ждем загрузки всех моделей
-        window.addEventListener('load', () => {
-            const scene = document.querySelector('a-scene');
-            if (scene.hasLoaded) onLoaded(); else scene.addEventListener('loaded', onLoaded);
-        });
-
-        function onLoaded() {
-            document.getElementById('loader').style.display = 'none';
-        }
-
-        // СУПЕР ПЛАВНЫЙ SWIPE
-        let lastTouchX, lastTouchY;
+        // --- УПРАВЛЕНИЕ: ПОВОРОТ ---
+        let lx, ly;
         document.body.addEventListener('touchstart', e => {
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        }, {passive: false});
-
+            if (e.touches[0].clientX < window.innerWidth / 2 || e.target.closest('#ui')) return;
+            lx = e.touches[0].clientX; ly = e.touches[0].clientY;
+        });
         document.body.addEventListener('touchmove', e => {
-            if (!isReady || e.target.closest('#joystick') || e.target.id === 'fire') return;
-            const dx = e.touches[0].clientX - lastTouchX;
-            const dy = e.touches[0].clientY - lastTouchY;
-            
-            rotY -= dx * 0.25;
-            rotX = Math.max(-70, Math.min(70, rotX - dy * 0.25));
-            
-            document.getElementById('rig').setAttribute('rotation', `0 ${rotY} 0`);
-            document.getElementById('camera').setAttribute('rotation', `${rotX} 0 0`);
-            
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
-        }, {passive: false});
-
-        // ДЖОЙСТИК
-        const joy = document.getElementById('joystick');
-        const stick = document.getElementById('stick');
-        joy.addEventListener('touchmove', e => {
-            const rect = joy.getBoundingClientRect();
-            const dx = e.touches[0].clientX - (rect.left + rect.width/2);
-            const dy = e.touches[0].clientY - (rect.top + rect.height/2);
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 55);
-            const angle = Math.atan2(dy, dx);
-            
-            stick.style.left = `calc(50% + ${Math.cos(angle)*dist}px)`;
-            stick.style.top = `calc(50% + ${Math.sin(angle)*dist}px)`;
-            
-            moveX = Math.cos(angle) * (dist/55);
-            moveZ = Math.sin(angle) * (dist/55);
-        });
-        joy.addEventListener('touchend', () => {
-            stick.style.left = '50%'; stick.style.top = '50%';
-            moveX = 0; moveZ = 0;
-        });
-
-        // СЕТЕВАЯ ЧАСТЬ
-        function init(mode) {
-            myNick = document.getElementById('nick').value.trim() || "Chicken_" + Math.floor(Math.random()*99);
-            const id = mode === 'host' ? 'cg-' + Math.floor(1000 + Math.random()*9000) : undefined;
-            
-            peer = new Peer(id, { debug: 1 });
-            
-            peer.on('open', myId => {
-                if (mode === 'host') alert("Твой ID комнаты: " + myId);
-                else {
-                    const target = document.getElementById('join-id').value;
-                    conn = peer.connect(target);
-                    setupConn();
+            for (let t of e.touches) {
+                if (t.clientX > window.innerWidth / 2 && t.target.id !== 'fire-btn') {
+                    if (lx === undefined) { lx = t.clientX; ly = t.clientY; return; }
+                    lookY -= (t.clientX - lx) * 0.25;
+                    lookX = Math.max(-75, Math.min(75, lookX - (t.clientY - ly) * 0.25));
+                    rig.setAttribute('rotation', `0 ${lookY} 0`);
+                    cam.setAttribute('rotation', `${lookX} 0 0`);
+                    lx = t.clientX; ly = t.clientY;
                 }
-                document.getElementById('menu').style.display = 'none';
-                document.getElementById('ui').style.display = 'block';
-                isReady = true;
-                startLoop();
-            });
+            }
+        });
 
-            peer.on('connection', c => {
-                conn = c;
-                setupConn();
+        // --- УПРАВЛЕНИЕ: ХОДЬБА ---
+        const jz = document.getElementById('joy-zone');
+        const st = document.getElementById('stick');
+        jz.addEventListener('touchmove', e => {
+            e.preventDefault();
+            let r = jz.getBoundingClientRect();
+            let dx = e.touches[0].clientX - (r.left + r.width/2);
+            let dy = e.touches[0].clientY - (r.top + r.height/2);
+            let d = Math.min(Math.sqrt(dx*dx+dy*dy), 50);
+            let a = Math.atan2(dy, dx);
+            st.style.left = `calc(50% + ${Math.cos(a)*d}px)`;
+            st.style.top = `calc(50% + ${Math.sin(a)*d}px)`;
+            moveX = Math.cos(a) * (d/50); moveZ = Math.sin(a) * (d/50);
+        });
+        jz.addEventListener('touchend', () => { moveX=0; moveZ=0; st.style.left='50%'; st.style.top='50%'; });
+
+        // --- СТРЕЛЬБА И УРОН ---
+        document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
+            if (isDead) return;
+            e.preventDefault();
+            document.getElementById('weapon').setAttribute('animation', 'property:position; to:0.35 -0.4 -0.6; dur:50; dir:alternate; loop:1');
+            
+            let ray = cam.components.raycaster;
+            let hits = ray.intersections;
+            if (hits.length > 0) {
+                let target = hits[0].object.el;
+                if (target.id.startsWith('p-')) {
+                    // Отправляем урон другу через сеть!
+                    let targetNick = target.id.replace('p-', '');
+                    if (conn) conn.send({ type: 'damage', to: targetNick, val: 20 });
+                }
+            }
+        });
+
+        // --- СЕТЕВАЯ ЛОГИКА ---
+        function boot(mode) {
+            myNick = document.getElementById('nick').value || "Chicken";
+            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*999) : undefined);
+            peer.on('open', id => {
+                if(mode === 'host') alert("ROOM ID: " + id);
+                else conn = peer.connect(document.getElementById('room').value);
+                if(mode === 'host') peer.on('connection', c => { conn = c; listen(); });
+                else listen();
+                document.getElementById('start-screen').style.display='none';
+                startTick();
             });
         }
 
-        function setupConn() {
+        function listen() {
             conn.on('data', data => {
-                let p = document.getElementById('p-' + data.nick);
-                if (!p) {
-                    p = document.createElement('a-entity');
-                    p.setAttribute('id', 'p-' + data.nick);
-                    p.setAttribute('gltf-model', '#chicken-asset');
-                    p.setAttribute('scale', '0.02 0.02 0.02'); // Масштаб курицы!
-                    p.innerHTML = `<a-text value="${data.nick}" align="center" position="0 150 0" scale="60 60 60" color="#ff0000"></a-text>`;
-                    document.getElementById('network-players').appendChild(p);
+                if (data.type === 'sync') {
+                    let p = document.getElementById('p-' + data.nick);
+                    if (!p) {
+                        p = document.createElement('a-entity');
+                        p.setAttribute('id', 'p-' + data.nick);
+                        p.setAttribute('gltf-model', '#chicken-asset');
+                        p.setAttribute('class', 'player-model');
+                        p.setAttribute('scale', '0.02 0.02 0.02');
+                        p.innerHTML = `<a-text value="${data.nick}" align="center" position="0 160 0" scale="60 60 60" color="red"></a-text>`;
+                        document.getElementById('players').appendChild(p);
+                    }
+                    p.setAttribute('position', data.pos);
+                    p.setAttribute('rotation', `0 ${data.rot} 0`);
+                    p.setAttribute('visible', !data.dead);
                 }
-                // Плавное перемещение (интерполяция)
-                p.setAttribute('position', data.pos);
-                p.setAttribute('rotation', `0 ${data.rot} 0`);
+                if (data.type === 'damage' && data.to === myNick) {
+                    takeDamage(data.val);
+                }
             });
         }
 
-        function startLoop() {
+        function takeDamage(val) {
+            hp -= val;
+            document.getElementById('hp-fill').style.width = hp + "%";
+            if (hp <= 0 && !isDead) {
+                isDead = true;
+                alert("ТЫ ПОГИБ!");
+                setTimeout(() => { 
+                    hp = 100; isDead = false; 
+                    rig.setAttribute('position', '0 0 10');
+                    document.getElementById('hp-fill').style.width = "100%";
+                }, 3000);
+            }
+        }
+
+        function startTick() {
             setInterval(() => {
-                if (!isReady) return;
-                
-                if (moveX || moveZ) {
-                    const r = document.getElementById('rig').getAttribute('rotation').y * (Math.PI/180);
-                    const pos = document.getElementById('rig').getAttribute('position');
-                    // Расчет вектора движения относительно камеры
-                    const dx = (moveX * Math.cos(r) + moveZ * Math.sin(r)) * 0.18;
-                    const dz = (moveX * -Math.sin(r) + moveZ * Math.cos(r)) * 0.18;
-                    
-                    // Простая проверка границ карты (чтобы не уйти в бесконечность)
-                    if (Math.abs(pos.x + dz) < 45 && Math.abs(pos.z + dx) < 45) {
-                        pos.x += dz;
-                        pos.z += dx;
-                        document.getElementById('rig').setAttribute('position', pos);
-                    }
+                if (!isDead && (moveX || moveZ)) {
+                    let r = rig.getAttribute('rotation').y * (Math.PI / 180);
+                    let vx = (moveZ * Math.sin(r) + moveX * Math.cos(r)) * 0.2;
+                    let vz = (moveZ * Math.cos(r) - moveX * Math.sin(r)) * 0.2;
+                    let p = rig.getAttribute('position');
+                    p.x -= vx; p.z -= vz;
+                    rig.setAttribute('position', p);
                 }
-                
                 if (conn && conn.open) {
-                    conn.send({
-                        nick: myNick,
-                        pos: document.getElementById('rig').getAttribute('position'),
-                        rot: rotY + 180
-                    });
+                    conn.send({ type: 'sync', nick: myNick, pos: rig.getAttribute('position'), rot: lookY + 180, dead: isDead });
                 }
             }, 20);
         }
 
-        // СТРЕЛЬБА
-        let coins = 0;
-        document.getElementById('fire').onclick = () => {
-            coins += 5;
-            document.getElementById('c-val').innerText = coins;
-            const w = document.getElementById('weapon');
-            w.setAttribute('animation', 'property: position; to: 0.35 -0.4 -0.6; dur: 50; dir: alternate; loop: 1');
-        };
+        function toggleShop() {
+            let s = document.getElementById('shop-menu');
+            s.style.display = s.style.display === 'block' ? 'none' : 'block';
+        }
+        function buy(p) { if(money >= p) { money -= p; document.getElementById('m-val').innerText = money; toggleShop(); } }
     </script>
 </body>
 </html>
