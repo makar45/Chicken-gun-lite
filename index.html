@@ -1,320 +1,193 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chicken Gun: Ultimate Edition</title>
+    <title>Chicken Gun Fixed</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; touch-action: none; user-select: none; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; touch-action: none; user-select: none; }
         
-        /* ГЛАВНЫЙ HUD */
-        #game-ui { position: absolute; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
-        #hud-top { position: absolute; top: 20px; left: 20px; display: flex; flex-direction: column; gap: 10px; }
+        /* КНОПКИ УПРАВЛЕНИЯ — САМЫЙ ВЕРХНИЙ СЛОЙ */
+        #ui { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; pointer-events: none; }
         
-        .hp-container { width: 220px; height: 24px; background: rgba(0,0,0,0.6); border: 3px solid #fff; border-radius: 6px; position: relative; }
-        #hp-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); transition: width 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        .money-text { color: #ffcc00; font-size: 26px; font-weight: 900; text-shadow: 3px 3px 0 #000; }
+        /* Джойстик слева */
+        #j-base { position: absolute; bottom: 50px; left: 50px; width: 120px; height: 120px; background: rgba(255,255,255,0.3); border: 4px solid #fff; border-radius: 50%; pointer-events: auto; }
+        #j-stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: #fff; border-radius: 50%; }
 
-        /* УПРАВЛЕНИЕ (ЖЕЛЕЗОБЕТОННОЕ) */
-        #controls-zone { position: absolute; width: 100%; height: 100%; z-index: 200; }
-        
-        #joystick-base { position: absolute; bottom: 60px; left: 60px; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border: 4px solid #fff; border-radius: 50%; pointer-events: auto; }
-        #joystick-knob { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        
-        #fire-button { position: absolute; bottom: 60px; right: 60px; width: 120px; height: 120px; background: #f44336; border: 6px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 24px; box-shadow: 0 10px 0 #b71c1c; }
-        #fire-button:active { transform: translateY(5px); box-shadow: 0 5px 0 #b71c1c; }
+        /* Кнопка стрельбы справа */
+        #f-btn { position: absolute; bottom: 60px; right: 60px; width: 110px; height: 110px; background: red; border: 5px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; text-shadow: 1px 1px 2px #000; }
 
-        /* МАГАЗИН И МЕНЮ */
-        #shop-trigger { position: absolute; top: 20px; right: 20px; padding: 15px 30px; background: #ffcc00; border: 4px solid #fff; border-radius: 12px; pointer-events: auto; font-weight: bold; cursor: pointer; }
-        
-        #shop-modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 340px; background: #2c3e50; border: 8px solid #ffcc00; border-radius: 20px; z-index: 1000; padding: 25px; pointer-events: auto; color: white; }
-        .shop-item { background: #34495e; padding: 15px; margin: 10px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 2px solid #5d6d7e; }
-        .buy-btn { background: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; }
+        /* Магазин */
+        #s-btn { position: absolute; top: 20px; right: 20px; padding: 15px; background: gold; border: 2px solid #fff; pointer-events: auto; font-weight: bold; border-radius: 10px; }
 
-        #start-overlay { position: absolute; width: 100%; height: 100%; background: #121212; z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .start-box { background: #f1c40f; padding: 40px; border-radius: 30px; border: 10px solid #fff; text-align: center; box-shadow: 0 20px 0 #d4ac0d; }
+        /* Меню входа */
+        #login { position: absolute; inset: 0; background: #222; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; color: white; }
+        input { padding: 10px; margin: 10px; width: 200px; text-align: center; }
+        button.start { padding: 15px 30px; background: #ffcc00; border: none; font-weight: bold; border-radius: 5px; }
 
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid #00ff00; border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none; }
-        #crosshair::before { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #00ff00; transform: translate(-50%, -50%); }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; border: 2px solid lime; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div id="start-overlay">
-        <div class="start-box">
-            <h1 style="font-size: 48px; margin: 0 0 20px 0; -webkit-text-stroke: 2px black;">CHICKEN GUN</h1>
-            <input type="text" id="player-nick" placeholder="НИКНЕЙМ" style="padding:15px; font-size:20px; width:250px; border-radius:10px; border:none;"><br><br>
-            <button onclick="initNetwork('host')" style="padding:15px 40px; background:#e74c3c; color:#fff; border:none; border-radius:12px; font-size:22px; font-weight:bold; cursor:pointer;">СОЗДАТЬ</button>
-            <p style="font-weight:bold;">ИЛИ</p>
-            <input type="text" id="room-input" placeholder="ID КОМНАТЫ" style="padding:10px; width:200px; border-radius:8px;"><br><br>
-            <button onclick="initNetwork('join')" style="padding:12px 30px; background:#3498db; color:#fff; border:none; border-radius:12px; font-size:20px; font-weight:bold;">ЗАЙТИ К ДРУГУ</button>
-        </div>
+    <div id="login">
+        <h1>CHICKEN GUN POCO</h1>
+        <input type="text" id="nick" placeholder="НИКНЕЙМ">
+        <button class="start" onclick="init('host')">СОЗДАТЬ</button>
+        <div style="height: 10px;"></div>
+        <input type="text" id="room" placeholder="ID КОМНАТЫ">
+        <button class="start" style="background:#2196F3;" onclick="init('join')">ЗАЙТИ</button>
     </div>
 
-    <div id="game-ui">
-        <div id="hud-top">
-            <div class="hp-container"><div id="hp-bar"></div></div>
-            <div class="money-text">МОНЕТЫ: <span id="m-count">0</span></div>
-        </div>
+    <div id="ui">
         <div id="crosshair"></div>
-        <div id="joystick-base"><div id="joystick-knob"></div></div>
-        <div id="fire-button">ОГОНЬ</div>
-        <div id="shop-trigger" onclick="toggleShop(true)">МАГАЗИН</div>
+        <div id="j-base"><div id="j-stick"></div></div>
+        <div id="f-btn">ОГОНЬ</div>
+        <div id="s-btn" onclick="alert('Магазин откроется в бою!')">SHOP</div>
+        <div style="position: absolute; top: 20px; left: 20px; color: white; font-family: sans-serif;">
+            HP: <span id="hp-val">100</span><br>
+            $: <span id="money">0</span>
+        </div>
     </div>
 
-    <div id="shop-modal">
-        <h2 style="text-align:center; color:#f1c40f;">ОРУЖЕЙНАЯ</h2>
-        <div class="shop-item">
-            <div><b>ПИСТОЛЕТ</b><br><small>Урон: 20</small></div>
-            <button class="buy-btn" onclick="buyItem('pistol', 0)">ВЗЯТЬ</button>
-        </div>
-        <div class="shop-item">
-            <div><b>ВИНТОВКА</b><br><small>Урон: 45</small></div>
-            <button class="buy-btn" onclick="buyItem('rifle', 500)">500$</button>
-        </div>
-        <button onclick="toggleShop(false)" style="width:100%; padding:12px; background:#e74c3c; color:white; border:none; border-radius:10px; margin-top:15px; font-weight:bold;">ВЫХОД</button>
-    </div>
-
-    <a-scene renderer="antialias: true; colorManagement: true;" physics="debug: false">
+    <a-scene renderer="antialias: false; precision: medium;">
         <a-assets>
-            <a-asset-item id="map-model" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
-            <a-asset-item id="chicken-model" src="./chicken_gun.glb"></a-asset-item>
+            <a-asset-item id="map" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
+            <a-asset-item id="chicken" src="./chicken_gun.glb"></a-asset-item>
         </a-assets>
 
         <a-sky color="#87CEEB"></a-sky>
-        <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-        <a-entity light="type: directional; intensity: 0.6; position: 2 10 3"></a-entity>
+        <a-light type="ambient" intensity="0.9"></a-light>
+        
+        <a-entity gltf-model="#map"></a-entity>
 
-        <a-entity id="world-map" gltf-model="#map-model" position="0 0 0" shadow="receive: true"></a-entity>
-
-        <a-entity id="player-rig" position="0 0 10">
-            <a-entity id="player-cam" camera position="0 1.7 0" look-controls="enabled: false" raycaster="objects: .remote-player; far: 50;">
-                <a-entity id="weapon-view" position="0.35 -0.4 -0.8">
-                    <a-box width="0.08" height="0.1" depth="0.5" color="#2c3e50">
-                        <a-light id="muzzle-flash" type="point" color="orange" intensity="0" position="0 0 -0.4"></a-light>
-                    </a-box>
-                    <a-cylinder rotation="90 0 0" position="0 0.04 -0.3" radius="0.03" height="0.6" color="#000"></a-cylinder>
+        <a-entity id="rig" position="0 0 5">
+            <a-entity id="camera" camera position="0 1.6 0" look-controls="enabled: false" raycaster="objects: .player; far: 50;">
+                <a-entity position="0.3 -0.3 -0.5">
+                    <a-box width="0.1" height="0.1" depth="0.4" color="#333"></a-box>
                 </a-entity>
-            </a-entity>
+            </a-camera>
         </a-entity>
 
-        <a-entity id="remote-players"></a-entity>
+        <a-entity id="players"></a-entity>
     </a-scene>
 
     <script>
-        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         let peer, conn, myNick;
-        let moveX = 0, moveZ = 0, rotY = 0, rotX = 0;
-        let hp = 100, money = 0, isDead = false;
-        const rig = document.getElementById('player-rig');
-        const cam = document.getElementById('player-cam');
+        let mvX = 0, mvZ = 0, rotY = 0, rotX = 0;
+        let hp = 100, money = 0;
+        const rig = document.getElementById('rig');
+        const cam = document.getElementById('camera');
 
-        // --- 1. СИСТЕМА УПРАВЛЕНИЯ КАМЕРОЙ ---
-        let touchStartPos = { x: 0, y: 0 };
+        // --- УПРАВЛЕНИЕ КАМЕРОЙ (ПРАВАЯ СТОРОНА) ---
+        let lx, ly;
         document.body.addEventListener('touchstart', e => {
             if (e.touches[0].clientX > window.innerWidth / 2) {
-                touchStartPos.x = e.touches[0].clientX;
-                touchStartPos.y = e.touches[0].clientY;
+                lx = e.touches[0].clientX; ly = e.touches[0].clientY;
             }
-        }, { passive: false });
-
+        });
         document.body.addEventListener('touchmove', e => {
-            for (let i = 0; i < e.touches.length; i++) {
-                let touch = e.touches[i];
-                if (touch.clientX > window.innerWidth / 2 && touch.target.id !== 'fire-button') {
-                    let dx = touch.clientX - touchStartPos.x;
-                    let dy = touch.clientY - touchStartPos.y;
-                    
-                    rotY -= dx * 0.25;
-                    rotX = Math.max(-85, Math.min(85, rotX - dy * 0.25));
-                    
+            for (let t of e.touches) {
+                if (t.clientX > window.innerWidth / 2 && t.target.id !== 'f-btn') {
+                    if (lx === undefined) return;
+                    rotY -= (t.clientX - lx) * 0.4;
+                    rotX = Math.max(-80, Math.min(80, rotX - (t.clientY - ly) * 0.4));
                     rig.setAttribute('rotation', `0 ${rotY} 0`);
                     cam.setAttribute('rotation', `${rotX} 0 0`);
-                    
-                    touchStartPos.x = touch.clientX;
-                    touchStartPos.y = touch.clientY;
+                    lx = t.clientX; ly = t.clientY;
                 }
             }
-        }, { passive: false });
+        });
 
-        // --- 2. СИСТЕМА ДЖОЙСТИКА ---
-        const jBase = document.getElementById('joystick-base');
-        const jKnob = document.getElementById('joystick-knob');
-        
+        // --- ДЖОЙСТИК ---
+        const jBase = document.getElementById('j-base');
+        const jStick = document.getElementById('j-stick');
         jBase.addEventListener('touchmove', e => {
             e.preventDefault();
-            let touch = e.touches[0];
-            let rect = jBase.getBoundingClientRect();
-            let centerX = rect.left + rect.width / 2;
-            let centerY = rect.top + rect.height / 2;
-            
-            let diffX = touch.clientX - centerX;
-            let diffY = touch.clientY - centerY;
-            let dist = Math.min(Math.sqrt(diffX*diffX + diffY*diffY), 60);
-            let angle = Math.atan2(diffY, diffX);
-            
-            jKnob.style.left = `calc(50% + ${Math.cos(angle) * dist}px)`;
-            jKnob.style.top = `calc(50% + ${Math.sin(angle) * dist}px)`;
-            
-            moveX = Math.cos(angle) * (dist / 60);
-            moveZ = Math.sin(angle) * (dist / 60);
+            let r = jBase.getBoundingClientRect();
+            let cx = r.left + 60, cy = r.top + 60;
+            let dx = e.touches[0].clientX - cx, dy = e.touches[0].clientY - cy;
+            let d = Math.min(Math.sqrt(dx*dx + dy*dy), 45);
+            let a = Math.atan2(dy, dx);
+            jStick.style.transform = `translate(${Math.cos(a)*d}px, ${Math.sin(a)*d}px)`;
+            mvX = Math.cos(a) * (d/45); mvZ = Math.sin(a) * (d/45);
         });
-
         jBase.addEventListener('touchend', () => {
-            jKnob.style.left = '50%'; jKnob.style.top = '50%';
-            moveX = 0; moveZ = 0;
+            jStick.style.transform = `translate(0,0)`;
+            mvX = 0; mvZ = 0;
         });
 
-        // --- 3. ФИЗИКА ДВИЖЕНИЯ И КОЛЛИЗИИ ---
-        function gameLoop() {
-            if (!isDead && (moveX !== 0 || moveZ !== 0)) {
-                let angleRad = rig.getAttribute('rotation').y * (Math.PI / 180);
-                
-                // Рассчитываем вектор движения относительно взгляда
-                let vx = (moveZ * Math.sin(angleRad) + moveX * Math.cos(angleRad)) * 0.22;
-                let vz = (moveZ * Math.cos(angleRad) - moveX * Math.sin(angleRad)) * 0.22;
-                
-                let currentPos = rig.getAttribute('position');
-                
-                // Простейшая проверка границ (Коллизии со стенами карты)
-                // Если карта Chalo House имеет размер примерно 50x50
-                let newX = currentPos.x - vx;
-                let newZ = currentPos.z - vz;
-
-                // Невидимые стены (подстрой цифры под glb карту)
-                if (Math.abs(newX) < 48 && Math.abs(newZ) < 48) {
-                    currentPos.x = newX;
-                    currentPos.z = newZ;
-                    rig.setAttribute('position', currentPos);
-                }
-            }
-
-            // Отправка данных в сеть
-            if (conn && conn.open) {
-                conn.send({
-                    type: 'sync',
-                    nick: myNick,
-                    pos: rig.getAttribute('position'),
-                    rot: rotY + 180,
-                    dead: isDead
-                });
-            }
-            requestAnimationFrame(gameLoop);
-        }
-
-        // --- 4. СТРЕЛЬБА И СЕТЕВОЙ УРОН ---
-        document.getElementById('fire-button').addEventListener('touchstart', e => {
-            if (isDead) return;
+        // --- СТРЕЛЬБА ---
+        document.getElementById('f-btn').addEventListener('touchstart', e => {
             e.preventDefault();
-
-            // Анимация отдачи оружия
-            const weapon = document.getElementById('weapon-view');
-            weapon.setAttribute('animation', 'property: position; to: 0.35 -0.4 -0.6; dur: 60; dir: alternate; loop: 1');
-
-            // Вспышка выстрела
-            const flash = document.getElementById('muzzle-flash');
-            flash.setAttribute('light', 'intensity', 3);
-            setTimeout(() => flash.setAttribute('light', 'intensity', 0), 60);
-
-            // Проверка попадания по классу .remote-player
-            let raycaster = cam.components.raycaster;
-            let intersections = raycaster.intersections;
-
-            if (intersections.length > 0) {
-                let target = intersections[0].object.el;
-                if (target.classList.contains('remote-player')) {
-                    let targetID = target.id.replace('p-', '');
-                    if (conn) {
-                        conn.send({
-                            type: 'damage',
-                            target: targetID,
-                            value: 25 // УРОН ТЕПЕРЬ ТУТ
-                        });
-                    }
+            let hits = cam.components.raycaster.intersections;
+            if (hits.length > 0) {
+                let target = hits[0].object.el;
+                if (target.classList.contains('player') && conn) {
+                    conn.send({ type: 'hit', to: target.id.replace('p-', ''), dmg: 20 });
                 }
             }
         });
 
-        // --- 5. СЕТЕВОЙ МОДУЛЬ (PEERJS) ---
-        function initNetwork(mode) {
-            myNick = document.getElementById('player-nick').value || "Chicken_" + Math.floor(Math.random()*99);
+        // --- СЕТЬ И ДВИЖЕНИЕ ---
+        function init(mode) {
+            myNick = document.getElementById('nick').value || "User";
             peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*999) : undefined);
-            
             peer.on('open', id => {
-                if (mode === 'host') alert("ID ТВОЕЙ КОМНАТЫ: " + id);
-                else {
-                    let roomID = document.getElementById('room-input').value;
-                    conn = peer.connect(roomID);
-                }
+                if(mode === 'host') alert("ROOM ID: " + id);
+                else conn = peer.connect(document.getElementById('room').value);
                 
-                if (mode === 'host') {
-                    peer.on('connection', c => {
-                        conn = c;
-                        setupConnection();
-                    });
-                } else {
-                    setupConnection();
-                }
-                
-                document.getElementById('start-overlay').style.display = 'none';
-                gameLoop();
+                if(mode === 'host') peer.on('connection', c => { conn = c; handleNet(); });
+                else handleNet();
+
+                document.getElementById('login').style.display = 'none';
+                loop();
             });
         }
 
-        function setupConnection() {
-            conn.on('data', data => {
-                // Синхронизация других игроков
-                if (data.type === 'sync') {
-                    let p = document.getElementById('p-' + data.nick);
+        function handleNet() {
+            conn.on('data', d => {
+                if (d.type === 'sync') {
+                    let p = document.getElementById('p-' + d.nick);
                     if (!p) {
                         p = document.createElement('a-entity');
-                        p.setAttribute('id', 'p-' + data.nick);
-                        p.setAttribute('gltf-model', '#chicken-model');
-                        p.setAttribute('class', 'remote-player');
-                        p.setAttribute('scale', '0.022 0.022 0.022');
-                        p.innerHTML = `<a-text value="${data.nick}" align="center" position="0 160 0" scale="60 60 60" color="red"></a-text>`;
-                        document.getElementById('remote-players').appendChild(p);
+                        p.setAttribute('id', 'p-' + d.nick);
+                        p.setAttribute('gltf-model', '#chicken');
+                        p.setAttribute('class', 'player');
+                        p.setAttribute('scale', '0.02 0.02 0.02');
+                        document.getElementById('players').appendChild(p);
                     }
-                    p.setAttribute('position', data.pos);
-                    p.setAttribute('rotation', `0 ${data.rot} 0`);
-                    p.setAttribute('visible', !data.dead);
+                    p.setAttribute('position', d.pos);
+                    p.setAttribute('rotation', `0 ${d.rot} 0`);
                 }
-
-                // ОБРАБОТКА ПОЛУЧЕНИЯ УРОНА
-                if (data.type === 'damage' && data.target === myNick) {
-                    hp -= data.value;
-                    document.getElementById('hp-bar').style.width = hp + "%";
-                    
-                    if (hp <= 0 && !isDead) {
-                        isDead = true;
-                        alert("ВЫ ПОГИБЛИ!");
-                        setTimeout(() => {
-                            hp = 100; isDead = false;
-                            document.getElementById('hp-bar').style.width = "100%";
-                            rig.setAttribute('position', '0 0 10');
-                        }, 4000);
-                    }
+                if (d.type === 'hit' && d.to === myNick) {
+                    hp -= d.dmg;
+                    document.getElementById('hp-val').innerText = hp;
+                    if (hp <= 0) { alert("ВЫ ПРОИГРАЛИ"); location.reload(); }
                 }
             });
         }
 
-        // --- 6. МАГАЗИН И ПРЕДМЕТЫ ---
-        function toggleShop(show) {
-            document.getElementById('shop-modal').style.display = show ? 'block' : 'none';
-        }
-
-        function buyItem(id, price) {
-            if (money >= price) {
-                money -= price;
-                document.getElementById('m-count').innerText = money;
-                alert("ОРУЖИЕ ОБНОВЛЕНО!");
-                if (id === 'rifle') document.getElementById('weapon-view').querySelector('a-box').setAttribute('color', '#7f8c8d');
-                toggleShop(false);
-            } else {
-                alert("НУЖНО БОЛЬШЕ ЗОЛОТА!");
-            }
+        function loop() {
+            setInterval(() => {
+                if (mvX || mvZ) {
+                    let angle = rig.getAttribute('rotation').y * (Math.PI / 180);
+                    let vx = (mvZ * Math.sin(angle) + mvX * Math.cos(angle)) * 0.25;
+                    let vz = (mvZ * Math.cos(angle) - mvX * Math.sin(angle)) * 0.25;
+                    let p = rig.getAttribute('position');
+                    
+                    // Простая проверка стен (не пускаем за границы 40 метров)
+                    if (Math.abs(p.x - vx) < 40 && Math.abs(p.z - vz) < 40) {
+                        p.x -= vx; p.z -= vz;
+                        rig.setAttribute('position', p);
+                    }
+                }
+                if (conn && conn.open) {
+                    conn.send({ type: 'sync', nick: myNick, pos: rig.getAttribute('position'), rot: rotY + 180 });
+                }
+            }, 20);
         }
     </script>
 </body>
