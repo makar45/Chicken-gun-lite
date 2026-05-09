@@ -2,201 +2,219 @@
 <html lang="ru">
 <head>
     <meta charset="utf-8">
-    <title>Chicken Gun: Chalo House Online</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chicken Gun Pro v2.0</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background: #000; }
-        #menu-overlay { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .ui-panel { background: #ffcc00; padding: 25px; border-radius: 20px; border: 6px solid #fff; text-align: center; color: #333; }
-        input { padding: 12px; font-size: 18px; border-radius: 8px; border: none; margin: 10px 0; width: 220px; }
-        button { padding: 12px 24px; font-size: 18px; font-weight: bold; cursor: pointer; background: #ff3300; color: #fff; border: none; border-radius: 12px; margin: 5px; box-shadow: 0 4px #990000; }
-        button:active { box-shadow: none; transform: translateY(4px); }
+        body { margin: 0; overflow: hidden; background: #111; touch-action: none; user-select: none; font-family: 'Arial', sans-serif; }
         
-        #hud { position: absolute; top: 15px; left: 15px; color: gold; z-index: 100; font-size: 20px; font-weight: bold; text-shadow: 2px 2px #000; display: none; }
-        #shop-modal { display: none; position: absolute; top: 10%; left: 10%; width: 80%; height: 80%; background: rgba(34,34,34,0.95); border: 5px solid #ffcc00; z-index: 2000; border-radius: 20px; color: white; flex-direction: column; align-items: center; padding: 20px; }
+        /* Загрузочный экран */
+        #loader { position: absolute; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #ffcc00; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Интерфейс */
+        #ui { position: absolute; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: none; }
+        #menu { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1500; display: flex; align-items: center; justify-content: center; }
+        .window { background: #ffcc00; padding: 40px; border: 10px solid #fff; border-radius: 30px; text-align: center; width: 300px; box-shadow: 0 20px 0 #b89500; }
         
-        #controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: space-between; padding: 0 40px; box-sizing: border-box; z-index: 100; }
-        .fire-btn { width: 90px; height: 90px; background: rgba(255, 51, 0, 0.8); border: 4px solid #fff; border-radius: 50%; color: white; font-weight: bold; }
-        .shop-trigger { width: 80px; height: 80px; background: #FFA500; border: 4px solid #fff; border-radius: 15px; color: white; font-weight: bold; }
+        input { width: 80%; padding: 15px; border-radius: 10px; border: none; font-size: 18px; margin-bottom: 10px; text-align: center; }
+        .btn { padding: 15px 25px; font-size: 20px; font-weight: bold; cursor: pointer; background: #ff3300; color: white; border: none; border-radius: 15px; box-shadow: 0 5px #990000; pointer-events: auto; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 2px #990000; }
+
+        #joystick { position: absolute; bottom: 50px; left: 50px; width: 140px; height: 140px; background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; }
+        #stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 15px rgba(0,0,0,0.3); }
+        #fire { position: absolute; bottom: 60px; right: 60px; width: 120px; height: 120px; background: radial-gradient(#ff5500, #cc2200); border: 6px solid #fff; border-radius: 50%; color: white; font-weight: bold; font-size: 22px; pointer-events: auto; text-shadow: 2px 2px 4px #000; }
+        #stats { position: absolute; top: 20px; left: 20px; color: gold; font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
     </style>
 </head>
 <body>
 
-    <div id="menu-overlay">
-        <div class="ui-panel">
-            <h1 style="margin:0 0 15px 0">CHICKEN GUN AI</h1>
-            <input type="text" id="nick-input" placeholder="Твой ник..." value="Курица_1">
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>ЗАГРУЗКА КАРТЫ...</p>
+    </div>
+
+    <div id="menu">
+        <div class="window">
+            <h1 style="margin:0 0 20px 0; color: #ff3300; -webkit-text-stroke: 1px white;">CHICKEN GUN</h1>
+            <input type="text" id="nick" placeholder="ТВОЙ НИК" maxlength="12">
             <br>
-            <button onclick="startServer()">СОЗДАТЬ СЕРВЕР</button>
-            <br>
-            <input type="text" id="join-id" placeholder="ID друга...">
-            <br>
-            <button onclick="joinServer()">ПОДКЛЮЧИТЬСЯ</button>
-            <p id="peer-id-display" style="font-size: 14px; color: #555;"></p>
+            <button class="btn" onclick="init('host')">СОЗДАТЬ СЕРВЕР</button>
+            <p style="margin:10px 0; font-weight:bold;">ИЛИ</p>
+            <input type="text" id="join-id" placeholder="ID КОМНАТЫ">
+            <button class="btn" style="background:#2196F3; box-shadow: 0 5px #0d47a1;" onclick="init('join')">ЗАЙТИ К ДРУГУ</button>
         </div>
     </div>
 
-    <div id="shop-modal">
-        <h2>МАГАЗИН ОРУЖИЯ</h2>
-        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;" id="shop-items">
-            </div>
-        <button onclick="toggleShop()" style="margin-top: 20px; background: #666;">ЗАКРЫТЬ</button>
+    <div id="ui">
+        <div id="stats">COINS: <span id="c-val">0</span></div>
+        <div id="joystick"><div id="stick"></div></div>
+        <button id="fire">FIRE!</button>
     </div>
 
-    <div id="hud">
-        МОНЕТЫ: <span id="coin-count">100</span> | ID: <span id="room-id">...</span>
-    </div>
+    <a-scene renderer="antialias: true; colorManagement: true; logarithmicDepthBuffer: true;">
+        <a-assets timeout="30000">
+            <a-asset-item id="map-asset" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
+            <a-asset-item id="chicken-asset" src="./chicken_gun.glb"></a-asset-item>
+        </a-assets>
 
-    <div id="controls">
-        <button class="shop-trigger" onclick="toggleShop()">SHOP</button>
-        <button class="fire-btn" onclick="fire()">ОГОНЬ</button>
-    </div>
+        <a-sky color="#87CEEB"></a-sky>
+        <a-light type="ambient" intensity="0.7"></a-light>
+        <a-light type="directional" position="5 10 5" intensity="0.8"></a-light>
 
-    <a-scene background="color: #87CEEB">
-        <a-entity light="type: ambient; intensity: 0.7;"></a-entity>
-        <a-entity light="type: directional; intensity: 0.6; position: -1 2 1"></a-entity>
+        <a-entity id="main-map" gltf-model="#map-asset" position="0 0 0"></a-entity>
 
-        <a-entity id="map">
-            <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#4CAF50"></a-plane>
-            
-            <a-box position="0 2.5 -5" width="10" height="5" depth="0.2" color="#2196F3"></a-box> <a-box position="-5 2.5 0" width="0.2" height="5" depth="10" color="#2196F3"></a-box> <a-box position="5 2.5 0" width="0.2" height="5" depth="10" color="#2196F3"></a-box> <a-box position="2.5 2.5 5" width="5" height="5" depth="0.2" color="#2196F3"></a-box> <a-cone position="0 6.5 0" radius-bottom="8" height="3" segments-radial="4" rotation="0 45 0" color="#D32F2F"></a-cone>
-            
-            <a-box position="-2 0.5 -2" width="1.5" height="1" depth="1.5" color="#8B4513"></a-box> <a-box position="2 0.5 -3" width="1" height="1" depth="1" color="#FFA500"></a-box> </a-entity>
-
-        <a-entity id="rig" position="0 0 8">
-            <a-camera look-controls="pointerLockEnabled: false">
-                <a-entity id="weapon-visual" position="0.3 -0.3 -0.5" rotation="0 180 0" geometry="primitive: box; width: 0.1; height: 0.1; depth: 0.4" material="color: #333"></a-entity>
+        <a-entity id="rig" position="0 0 10">
+            <a-entity id="camera" camera position="0 1.6 0" look-controls="enabled: false">
+                <a-entity id="weapon" position="0.35 -0.4 -0.7">
+                    <a-box width="0.1" height="0.15" depth="0.5" color="#222"></a-box>
+                    <a-cylinder rotation="90 0 0" position="0 0.05 -0.3" radius="0.03" height="0.6" color="#000"></a-cylinder>
+                </a-entity>
             </a-camera>
         </a-entity>
 
-        <a-entity id="players-container"></a-entity>
+        <a-entity id="network-players"></a-entity>
     </a-scene>
 
     <script>
-        let peer, conn, myNick = "Курица";
-        let coins = 100;
-        let currentWeapon = "Пистолет";
-        const weapons = {
-            "Пистолет": { price: 0, color: "#333", power: 1 },
-            "АК-47": { price: 150, color: "#8B4513", power: 2 },
-            "Лазер": { price: 500, color: "#00ffff", power: 5 }
-        };
+        let peer, conn, myNick, moveX = 0, moveZ = 0, rotY = 0, rotX = 0;
+        let isReady = false;
 
-        // ЛОГИКА ОНЛАЙНА
-        function initPeer(id) {
-            peer = new Peer(id);
-            peer.on('open', (myId) => {
-                document.getElementById('peer-id-display').innerText = "ID комнаты: " + myId;
-                document.getElementById('room-id').innerText = myId;
-            });
-            peer.on('connection', (c) => {
-                conn = c;
-                setupConnection();
-                startGame();
-            });
+        // Ждем загрузки всех моделей
+        window.addEventListener('load', () => {
+            const scene = document.querySelector('a-scene');
+            if (scene.hasLoaded) onLoaded(); else scene.addEventListener('loaded', onLoaded);
+        });
+
+        function onLoaded() {
+            document.getElementById('loader').style.display = 'none';
         }
 
-        function startServer() {
-            myNick = document.getElementById('nick-input').value;
-            const roomId = 'cg-' + Math.floor(100 + Math.random() * 899);
-            initPeer(roomId);
-            startGame();
-        }
+        // СУПЕР ПЛАВНЫЙ SWIPE
+        let lastTouchX, lastTouchY;
+        document.body.addEventListener('touchstart', e => {
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+        }, {passive: false});
 
-        function joinServer() {
-            myNick = document.getElementById('nick-input').value;
-            const targetId = document.getElementById('join-id').value;
-            peer = new Peer();
-            peer.on('open', () => {
-                conn = peer.connect(targetId);
-                setupConnection();
-                startGame();
-            });
-        }
-
-        function setupConnection() {
-            conn.on('data', (data) => {
-                if(data.type === 'sync') updateRemotePlayer(data);
-            });
-        }
-
-        function startGame() {
-            document.getElementById('menu-overlay').style.display = 'none';
-            document.getElementById('hud').style.display = 'block';
-            document.getElementById('controls').style.display = 'flex';
+        document.body.addEventListener('touchmove', e => {
+            if (!isReady || e.target.closest('#joystick') || e.target.id === 'fire') return;
+            const dx = e.touches[0].clientX - lastTouchX;
+            const dy = e.touches[0].clientY - lastTouchY;
             
+            rotY -= dx * 0.25;
+            rotX = Math.max(-70, Math.min(70, rotX - dy * 0.25));
+            
+            document.getElementById('rig').setAttribute('rotation', `0 ${rotY} 0`);
+            document.getElementById('camera').setAttribute('rotation', `${rotX} 0 0`);
+            
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+        }, {passive: false});
+
+        // ДЖОЙСТИК
+        const joy = document.getElementById('joystick');
+        const stick = document.getElementById('stick');
+        joy.addEventListener('touchmove', e => {
+            const rect = joy.getBoundingClientRect();
+            const dx = e.touches[0].clientX - (rect.left + rect.width/2);
+            const dy = e.touches[0].clientY - (rect.top + rect.height/2);
+            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 55);
+            const angle = Math.atan2(dy, dx);
+            
+            stick.style.left = `calc(50% + ${Math.cos(angle)*dist}px)`;
+            stick.style.top = `calc(50% + ${Math.sin(angle)*dist}px)`;
+            
+            moveX = Math.cos(angle) * (dist/55);
+            moveZ = Math.sin(angle) * (dist/55);
+        });
+        joy.addEventListener('touchend', () => {
+            stick.style.left = '50%'; stick.style.top = '50%';
+            moveX = 0; moveZ = 0;
+        });
+
+        // СЕТЕВАЯ ЧАСТЬ
+        function init(mode) {
+            myNick = document.getElementById('nick').value.trim() || "Chicken_" + Math.floor(Math.random()*99);
+            const id = mode === 'host' ? 'cg-' + Math.floor(1000 + Math.random()*9000) : undefined;
+            
+            peer = new Peer(id, { debug: 1 });
+            
+            peer.on('open', myId => {
+                if (mode === 'host') alert("Твой ID комнаты: " + myId);
+                else {
+                    const target = document.getElementById('join-id').value;
+                    conn = peer.connect(target);
+                    setupConn();
+                }
+                document.getElementById('menu').style.display = 'none';
+                document.getElementById('ui').style.display = 'block';
+                isReady = true;
+                startLoop();
+            });
+
+            peer.on('connection', c => {
+                conn = c;
+                setupConn();
+            });
+        }
+
+        function setupConn() {
+            conn.on('data', data => {
+                let p = document.getElementById('p-' + data.nick);
+                if (!p) {
+                    p = document.createElement('a-entity');
+                    p.setAttribute('id', 'p-' + data.nick);
+                    p.setAttribute('gltf-model', '#chicken-asset');
+                    p.setAttribute('scale', '0.02 0.02 0.02'); // Масштаб курицы!
+                    p.innerHTML = `<a-text value="${data.nick}" align="center" position="0 150 0" scale="60 60 60" color="#ff0000"></a-text>`;
+                    document.getElementById('network-players').appendChild(p);
+                }
+                // Плавное перемещение (интерполяция)
+                p.setAttribute('position', data.pos);
+                p.setAttribute('rotation', `0 ${data.rot} 0`);
+            });
+        }
+
+        function startLoop() {
             setInterval(() => {
+                if (!isReady) return;
+                
+                if (moveX || moveZ) {
+                    const r = document.getElementById('rig').getAttribute('rotation').y * (Math.PI/180);
+                    const pos = document.getElementById('rig').getAttribute('position');
+                    // Расчет вектора движения относительно камеры
+                    const dx = (moveX * Math.cos(r) + moveZ * Math.sin(r)) * 0.18;
+                    const dz = (moveX * -Math.sin(r) + moveZ * Math.cos(r)) * 0.18;
+                    
+                    // Простая проверка границ карты (чтобы не уйти в бесконечность)
+                    if (Math.abs(pos.x + dz) < 45 && Math.abs(pos.z + dx) < 45) {
+                        pos.x += dz;
+                        pos.z += dx;
+                        document.getElementById('rig').setAttribute('position', pos);
+                    }
+                }
+                
                 if (conn && conn.open) {
                     conn.send({
-                        type: 'sync',
                         nick: myNick,
                         pos: document.getElementById('rig').getAttribute('position'),
-                        rot: document.getElementById('rig').querySelector('a-camera').getAttribute('rotation'),
-                        weaponColor: weapons[currentWeapon].color
+                        rot: rotY + 180
                     });
                 }
-            }, 50);
+            }, 20);
         }
 
-        function updateRemotePlayer(data) {
-            let p = document.getElementById('player-' + data.nick);
-            if (!p) {
-                p = document.createElement('a-entity');
-                p.setAttribute('id', 'player-' + data.nick);
-                p.innerHTML = `
-                    <a-sphere radius="0.6" color="#fff"></a-sphere>
-                    <a-text value="${data.nick}" align="center" position="0 1.2 0" scale="1.5 1.5 1.5" color="yellow"></a-text>
-                    <a-box id="remote-wpn-${data.nick}" position="0.3 0 -0.5" width="0.1" height="0.1" depth="0.4"></a-box>
-                `;
-                document.getElementById('players-container').appendChild(p);
-            }
-            p.setAttribute('position', data.pos);
-            p.setAttribute('rotation', `0 ${data.rot.y} 0`);
-            document.getElementById(`remote-wpn-${data.nick}`).setAttribute('material', 'color', data.weaponColor);
-        }
-
-        // МАГАЗИН
-        function toggleShop() {
-            const m = document.getElementById('shop-modal');
-            m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
-            renderShop();
-        }
-
-        function renderShop() {
-            const cont = document.getElementById('shop-items');
-            cont.innerHTML = '';
-            for (let name in weapons) {
-                const w = weapons[name];
-                const btn = document.createElement('button');
-                btn.innerHTML = `${name}<br>${w.price} мон.`;
-                btn.onclick = () => buyWeapon(name);
-                if (coins < w.price && name !== currentWeapon) btn.style.background = "#555";
-                cont.appendChild(btn);
-            }
-        }
-
-        function buyWeapon(name) {
-            if (name === currentWeapon) return;
-            if (coins >= weapons[name].price) {
-                coins -= weapons[name].price;
-                currentWeapon = name;
-                document.getElementById('coin-count').innerText = coins;
-                document.getElementById('weapon-visual').setAttribute('material', 'color', weapons[name].color);
-                toggleShop();
-            } else {
-                alert("Недостаточно монет!");
-            }
-        }
-
-        function fire() {
-            // Просто эффект вспышки для видео
-            const w = document.getElementById('weapon-visual');
-            w.setAttribute('animation', 'property: position; to: 0.3 -0.3 -0.4; dur: 50; dir: alternate; loop: 1');
-            // Добавляем +1 монету за выстрел (просто для теста магазина)
-            coins += 1;
-            document.getElementById('coin-count').innerText = coins;
-        }
+        // СТРЕЛЬБА
+        let coins = 0;
+        document.getElementById('fire').onclick = () => {
+            coins += 5;
+            document.getElementById('c-val').innerText = coins;
+            const w = document.getElementById('weapon');
+            w.setAttribute('animation', 'property: position; to: 0.35 -0.4 -0.6; dur: 50; dir: alternate; loop: 1');
+        };
     </script>
 </body>
 </html>
