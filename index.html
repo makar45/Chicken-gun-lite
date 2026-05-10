@@ -3,8 +3,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chicken Gun: Fixed Edition</title>
+    <title>Chicken Gun: Pro Physics</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; user-select: none; font-family: 'Arial', sans-serif; }
@@ -17,12 +19,12 @@
         #money-ui { color: #ffcc00; font-weight: 900; font-size: 22px; text-shadow: 2px 2px #000; margin-top: 5px; }
         #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid #00ff00; border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; }
         #joy-base { position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.2); border: 3px solid #fff; border-radius: 50%; }
-        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); }
+        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
         #btn-fire { position: absolute; bottom: 50px; right: 40px; width: 110px; height: 110px; background: #f44336; border: 5px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 20px; box-shadow: 0 6px #b71c1c; }
-        #btn-jump { position: absolute; bottom: 180px; right: 55px; width: 80px; height: 80px; background: #3498db; border: 4px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+        #btn-jump { position: absolute; bottom: 180px; right: 55px; width: 80px; height: 80px; background: #3498db; border: 4px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; box-shadow: 0 5px #21618c; }
         #menu-screen { position: absolute; inset: 0; background: #1a1a1a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .menu-box { background: #f1c40f; padding: 40px; border-radius: 20px; border: 8px solid #fff; text-align: center; }
-        .inp { padding: 12px; margin: 10px; width: 200px; border-radius: 8px; border: none; font-size: 16px; }
+        .inp { padding: 12px; margin: 10px; width: 200px; border-radius: 8px; border: none; font-size: 16px; text-align: center; }
         .btn-menu { padding: 15px 25px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: #fff; cursor: pointer; }
     </style>
 </head>
@@ -30,11 +32,11 @@
 
     <div id="menu-screen" class="ui-element">
         <div class="menu-box">
-            <h1 style="color:#e74c3c;">CHICKEN GUN</h1>
+            <h1 style="color:#e74c3c; margin-top:0;">CHICKEN GUN</h1>
             <input type="text" id="nick-input" placeholder="НИКНЕЙМ" class="inp"><br>
-            <button class="btn-menu" style="background:#e74c3c;" onclick="startGame('host')">СОЗДАТЬ</button><br><br>
+            <button class="btn-menu" style="background:#e74c3c;" onclick="startGame('host')">СОЗДАТЬ СЕРВЕР</button><br><br>
             <input type="text" id="room-input" placeholder="ID КОМНАТЫ" class="inp"><br>
-            <button class="btn-menu" style="background:#3498db;" onclick="startGame('join')">ВОЙТИ</button>
+            <button class="btn-menu" style="background:#3498db;" onclick="startGame('join')">ПОДКЛЮЧИТЬСЯ</button>
         </div>
     </div>
 
@@ -46,11 +48,11 @@
         </div>
         <div id="crosshair"></div>
         <div id="joy-base" class="ui-element no-cam"><div id="joy-stick"></div></div>
-        <div id="btn-fire" class="ui-element no-cam">FIRE</div>
-        <div id="btn-jump" class="ui-element no-cam">JUMP</div>
+        <div id="btn-fire" class="ui-element no-cam">ОГОНЬ</div>
+        <div id="btn-jump" class="ui-element no-cam">ПРЫЖОК</div>
     </div>
 
-    <a-scene renderer="antialias: true; colorManagement: true;">
+    <a-scene physics="gravity: -9.8; debug: false;">
         <a-assets>
             <a-asset-item id="map-model" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
             <a-asset-item id="chicken-model" src="./chicken_gun.glb"></a-asset-item>
@@ -60,10 +62,10 @@
         <a-entity light="type: ambient; intensity: 0.8"></a-entity>
         <a-entity light="type: directional; intensity: 0.6; position: -2 10 5"></a-entity>
 
-        <a-entity gltf-model="#map-model" position="0 0 0"></a-entity>
+        <a-entity gltf-model="#map-model" position="0 0 0" static-body="shape: mesh;"></a-entity>
 
-        <a-entity id="rig" position="0 0 10">
-            <a-entity id="cam" camera position="0 1.7 0" look-controls="enabled: false" raycaster="objects: .enemy-hitbox; far: 100;">
+        <a-entity id="rig" position="5 2 12" kinematic-body="radius: 0.5; height: 1.8;">
+            <a-entity id="cam" camera position="0 1.6 0" look-controls="enabled: false" raycaster="objects: .enemy-hitbox; far: 100;">
                 <a-entity id="weapon" position="0.3 -0.4 -0.6">
                     <a-box width="0.08" height="0.1" depth="0.5" color="#333">
                         <a-light id="muzzle-flash" type="point" intensity="0" color="#ffaa00" position="0 0 -0.4"></a-light>
@@ -81,12 +83,12 @@
         let camRotX = 0, camRotY = 0;
         let moveX = 0, moveZ = 0;
         let hp = 100, isDead = false;
-        let isJumping = false, velocityY = 0;
+        let velocityY = 0;
         
         const rig = document.getElementById('rig');
         const cam = document.getElementById('cam');
 
-        // КАМЕРА
+        // ПОВОРОТ КАМЕРЫ
         let activeCamTouchId = null;
         let lastCamX, lastCamY;
 
@@ -102,9 +104,9 @@
         document.body.addEventListener('touchmove', e => {
             for (let t of e.changedTouches) {
                 if (t.identifier === activeCamTouchId) {
-                    camRotY -= (t.clientX - lastCamX) * 0.25;
-                    camRotX -= (t.clientY - lastCamY) * 0.25;
-                    camRotX = Math.max(-80, Math.min(80, camRotX));
+                    camRotY -= (t.clientX - lastCamX) * 0.3;
+                    camRotX -= (t.clientY - lastCamY) * 0.3;
+                    camRotX = Math.max(-85, Math.min(85, camRotX));
                     rig.setAttribute('rotation', `0 ${camRotY} 0`);
                     cam.setAttribute('rotation', `${camRotX} 0 0`);
                     lastCamX = t.clientX; lastCamY = t.clientY;
@@ -117,79 +119,79 @@
         const jStick = document.getElementById('joy-stick');
         let activeJoyTouchId = null;
 
+        jBase.addEventListener('touchstart', e => {
+            for (let t of e.changedTouches) {
+                activeJoyTouchId = t.identifier;
+                updateJoy(t);
+            }
+        });
+
+        jBase.addEventListener('touchmove', e => {
+            for (let t of e.changedTouches) {
+                if (t.identifier === activeJoyTouchId) updateJoy(t);
+            }
+        });
+
         function updateJoy(t) {
             let rect = jBase.getBoundingClientRect();
             let cx = rect.left + rect.width / 2;
             let cy = rect.top + rect.height / 2;
             let dx = t.clientX - cx;
             let dy = t.clientY - cy;
-            let dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+            let dist = Math.min(Math.sqrt(dx*dx + dy*dy), 55);
             let angle = Math.atan2(dy, dx);
             jStick.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
-            moveX = Math.cos(angle) * (dist / 50); 
-            moveZ = Math.sin(angle) * (dist / 50);
+            moveX = Math.cos(angle) * (dist / 55); 
+            moveZ = Math.sin(angle) * (dist / 55);
         }
 
-        jBase.addEventListener('touchstart', e => {
-            for (let t of e.changedTouches) { activeJoyTouchId = t.identifier; updateJoy(t); }
-        });
-        jBase.addEventListener('touchmove', e => {
-            for (let t of e.changedTouches) { if (t.identifier === activeJoyTouchId) updateJoy(t); }
-        });
-        jBase.addEventListener('touchend', () => { 
-            activeJoyTouchId = null; 
-            jStick.style.transform = `translate(-50%, -50%)`; 
-            moveX = 0; moveZ = 0; 
+        jBase.addEventListener('touchend', () => {
+            activeJoyTouchId = null;
+            jStick.style.transform = `translate(-50%, -50%)`;
+            moveX = 0; moveZ = 0;
         });
 
         // ПРЫЖОК
-        document.getElementById('btn-jump').addEventListener('touchstart', () => {
-            if (!isJumping && !isDead) { velocityY = 0.25; isJumping = true; }
+        document.getElementById('btn-jump').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // В kinematic-body прыжок реализуется через временное изменение вектора скорости
+            if (!isDead && rig.body) {
+                rig.body.velocity.y = 7; 
+            }
         });
 
         // СТРЕЛЬБА
-        document.getElementById('btn-fire').addEventListener('touchstart', () => {
+        document.getElementById('btn-fire').addEventListener('touchstart', (e) => {
+            e.preventDefault();
             if (isDead) return;
             const flash = document.getElementById('muzzle-flash');
-            flash.setAttribute('light', 'intensity', 5);
+            flash.setAttribute('light', 'intensity', 6);
             setTimeout(() => flash.setAttribute('light', 'intensity', 0), 50);
-            
+
             let tracer = document.createElement('a-cylinder');
-            tracer.setAttribute('radius', '0.01'); tracer.setAttribute('height', '40'); tracer.setAttribute('color', '#ffff00');
-            tracer.setAttribute('rotation', '90 0 0'); tracer.setAttribute('position', '0.3 -0.35 -20');
-            tracer.setAttribute('material', 'shader: flat; opacity: 0.7');
+            tracer.setAttribute('radius', '0.015'); tracer.setAttribute('height', '50'); tracer.setAttribute('color', '#ffff00');
+            tracer.setAttribute('rotation', '90 0 0'); tracer.setAttribute('position', '0.3 -0.35 -25');
+            tracer.setAttribute('material', 'shader: flat; opacity: 0.8');
             cam.appendChild(tracer);
             setTimeout(() => tracer.parentNode && tracer.parentNode.removeChild(tracer), 40);
 
             let hits = cam.components.raycaster.intersections;
             if (hits.length > 0 && hits[0].object.el.classList.contains('enemy-hitbox') && conn) {
-                conn.send({ type: 'damage', to: hits[0].object.el.id.replace('p-', ''), dmg: 20 });
+                conn.send({ type: 'damage', to: hits[0].object.el.id.replace('p-', ''), dmg: 25 });
             }
         });
 
-        // ДВИЖЕНИЕ И ФИЗИКА (БЕЗ ГЛЮКОВ)
+        // ГЛАВНЫЙ ЦИКЛ
         function engineLoop() {
-            if (!isDead) {
-                let pos = rig.getAttribute('position');
+            if (!isDead && rig.body) {
+                let angle = camRotY * (Math.PI / 180);
+                let speed = 7;
+                // Применяем горизонтальную скорость к физическому телу
+                let vx = (moveX * Math.cos(angle) + moveZ * Math.sin(angle)) * speed;
+                let vz = (-moveX * Math.sin(angle) + moveZ * Math.cos(angle)) * speed;
                 
-                // Прыжок и гравитация
-                pos.y += velocityY;
-                if (pos.y > 0) velocityY -= 0.015;
-                else { pos.y = 0; velocityY = 0; isJumping = false; }
-
-                // Ходьба
-                if (moveX !== 0 || moveZ !== 0) {
-                    let angle = camRotY * (Math.PI / 180);
-                    let nX = pos.x + (moveX * Math.cos(angle) + moveZ * Math.sin(angle)) * 0.22;
-                    let nZ = pos.z + (-moveX * Math.sin(angle) + moveZ * Math.cos(angle)) * 0.22;
-                    
-                    // УМНАЯ КОЛЛИЗИЯ: Мы просто проверяем, чтобы ты не улетал за 
-                    // пределы карты (200м), но внутри дома всё будет плавно.
-                    if (Math.abs(nX) < 180 && Math.abs(nZ) < 180) {
-                        pos.x = nX; pos.z = nZ;
-                    }
-                }
-                rig.setAttribute('position', pos);
+                rig.body.velocity.x = vx;
+                rig.body.velocity.z = vz;
             }
 
             if (conn && conn.open) {
@@ -198,14 +200,15 @@
             requestAnimationFrame(engineLoop);
         }
 
-        // СЕТЬ
+        // СЕТЕВАЯ ЧАСТЬ
         function startGame(mode) {
-            myNick = document.getElementById('nick-input').value || "Chicken" + Math.floor(Math.random()*99);
+            myNick = document.getElementById('nick-input').value.trim() || "Chick_" + Math.floor(Math.random()*99);
             document.getElementById('player-name').innerText = myNick;
-            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*999) : undefined);
+            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*9999) : undefined);
+            
             peer.on('open', id => {
-                if (mode === 'host') alert("ROOM ID: " + id);
-                else conn = peer.connect(document.getElementById('room-input').value);
+                if (mode === 'host') alert("ID СЕРВЕРА: " + id);
+                else conn = peer.connect(document.getElementById('room-input').value.trim());
                 if (mode === 'host') peer.on('connection', c => { conn = c; setupNet(); });
                 else setupNet();
                 document.getElementById('menu-screen').style.display = 'none';
@@ -234,8 +237,12 @@
                     hp -= data.dmg;
                     document.getElementById('hp-bar').style.width = hp + "%";
                     if (hp <= 0 && !isDead) {
-                        isDead = true; alert("DIED!");
-                        setTimeout(() => { hp = 100; isDead = false; document.getElementById('hp-bar').style.width="100%"; rig.setAttribute('position', '0 0 10'); }, 3000);
+                        isDead = true; alert("ТЫ ПОГИБ!");
+                        setTimeout(() => { 
+                            hp = 100; isDead = false; 
+                            document.getElementById('hp-bar').style.width = "100%"; 
+                            rig.setAttribute('position', '5 2 12'); 
+                        }, 3000);
                     }
                 }
             });
