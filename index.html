@@ -3,40 +3,47 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chicken Gun: Pro Physics</title>
+    <title>Chicken Gun: Classic Stable</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; user-select: none; font-family: 'Arial', sans-serif; }
         #game-ui { position: absolute; inset: 0; z-index: 9999; pointer-events: none; }
         .ui-element { pointer-events: auto; }
+        
+        /* HUD */
         #hud { position: absolute; top: 15px; left: 15px; }
         #player-name { color: #fff; font-weight: bold; font-size: 18px; text-shadow: 2px 2px #000; }
-        .hp-border { width: 200px; height: 18px; background: rgba(0,0,0,0.6); border: 3px solid #fff; border-radius: 4px; margin-top:5px; }
+        .hp-border { width: 200px; height: 18px; background: rgba(0,0,0,0.6); border: 3px solid #fff; border-radius: 4px; margin-top: 5px; }
         #hp-bar { width: 100%; height: 100%; background: #ff0000; transition: width 0.2s; }
         #money-ui { color: #ffcc00; font-weight: 900; font-size: 22px; text-shadow: 2px 2px #000; margin-top: 5px; }
+
+        /* ПРИЦЕЛ */
         #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid #00ff00; border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; }
-        #joy-base { position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.2); border: 3px solid #fff; border-radius: 50%; }
+
+        /* КНОПКИ */
+        #joy-base { position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.15); border: 3px solid #fff; border-radius: 50%; }
         #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
-        #btn-fire { position: absolute; bottom: 50px; right: 40px; width: 110px; height: 110px; background: #f44336; border: 5px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 20px; box-shadow: 0 6px #b71c1c; }
-        #btn-jump { position: absolute; bottom: 180px; right: 55px; width: 80px; height: 80px; background: #3498db; border: 4px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; box-shadow: 0 5px #21618c; }
+        
+        #btn-fire { position: absolute; bottom: 50px; right: 40px; width: 110px; height: 110px; background: #f44336; border: 5px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 20px; box-shadow: 0 8px #b71c1c; }
+        #btn-jump { position: absolute; bottom: 180px; right: 55px; width: 80px; height: 80px; background: #3498db; border: 4px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; box-shadow: 0 6px #21618c; }
+
+        /* МЕНЮ */
         #menu-screen { position: absolute; inset: 0; background: #1a1a1a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .menu-box { background: #f1c40f; padding: 40px; border-radius: 20px; border: 8px solid #fff; text-align: center; }
-        .inp { padding: 12px; margin: 10px; width: 200px; border-radius: 8px; border: none; font-size: 16px; text-align: center; }
-        .btn-menu { padding: 15px 25px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: #fff; cursor: pointer; }
+        .inp { padding: 15px; margin: 10px; width: 220px; border-radius: 8px; border: none; font-size: 18px; text-align: center; }
+        .btn-menu { padding: 15px 30px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: #fff; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="menu-screen" class="ui-element">
         <div class="menu-box">
-            <h1 style="color:#e74c3c; margin-top:0;">CHICKEN GUN</h1>
+            <h1 style="color:#e74c3c; margin:0; font-size:36px; text-shadow: 2px 2px #fff;">CHICKEN GUN</h1>
             <input type="text" id="nick-input" placeholder="НИКНЕЙМ" class="inp"><br>
-            <button class="btn-menu" style="background:#e74c3c;" onclick="startGame('host')">СОЗДАТЬ СЕРВЕР</button><br><br>
+            <button class="btn-menu" style="background:#e74c3c;" onclick="startGame('host')">СОЗДАТЬ ИГРУ</button><br><br>
             <input type="text" id="room-input" placeholder="ID КОМНАТЫ" class="inp"><br>
-            <button class="btn-menu" style="background:#3498db;" onclick="startGame('join')">ПОДКЛЮЧИТЬСЯ</button>
+            <button class="btn-menu" style="background:#3498db;" onclick="startGame('join')">ЗАЙТИ К ДРУГУ</button>
         </div>
     </div>
 
@@ -52,25 +59,25 @@
         <div id="btn-jump" class="ui-element no-cam">ПРЫЖОК</div>
     </div>
 
-    <a-scene physics="gravity: -9.8; debug: false;">
+    <a-scene renderer="antialias: true; colorManagement: true;">
         <a-assets>
             <a-asset-item id="map-model" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
             <a-asset-item id="chicken-model" src="./chicken_gun.glb"></a-asset-item>
         </a-assets>
 
         <a-sky color="#87CEEB"></a-sky>
-        <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-        <a-entity light="type: directional; intensity: 0.6; position: -2 10 5"></a-entity>
+        <a-entity light="type: ambient; intensity: 0.9"></a-entity>
+        <a-entity light="type: directional; intensity: 0.7; position: -2 10 5"></a-entity>
 
-        <a-entity gltf-model="#map-model" position="0 0 0" static-body="shape: mesh;"></a-entity>
+        <a-entity gltf-model="#map-model" position="0 0 0"></a-entity>
 
-        <a-entity id="rig" position="5 2 12" kinematic-body="radius: 0.5; height: 1.8;">
-            <a-entity id="cam" camera position="0 1.6 0" look-controls="enabled: false" raycaster="objects: .enemy-hitbox; far: 100;">
+        <a-entity id="rig" position="8 2 12">
+            <a-entity id="cam" camera position="0 1.7 0" look-controls="enabled: false" raycaster="objects: .enemy-hitbox; far: 100;">
                 <a-entity id="weapon" position="0.3 -0.4 -0.6">
                     <a-box width="0.08" height="0.1" depth="0.5" color="#333">
                         <a-light id="muzzle-flash" type="point" intensity="0" color="#ffaa00" position="0 0 -0.4"></a-light>
                     </a-box>
-                    <a-cylinder rotation="90 0 0" position="0 0.05 -0.3" radius="0.02" height="0.6" color="#111"></a-cylinder>
+                    <a-cylinder rotation="90 0 0" position="0 0.05 -0.3" radius="0.03" height="0.6" color="#111"></a-cylinder>
                 </a-entity>
             </a-entity>
         </a-entity>
@@ -83,12 +90,12 @@
         let camRotX = 0, camRotY = 0;
         let moveX = 0, moveZ = 0;
         let hp = 100, isDead = false;
-        let velocityY = 0;
+        let isJumping = false, velocityY = 0;
         
         const rig = document.getElementById('rig');
         const cam = document.getElementById('cam');
 
-        // ПОВОРОТ КАМЕРЫ
+        // 1. УПРАВЛЕНИЕ КАМЕРОЙ (ПРАВАЯ ЧАСТЬ)
         let activeCamTouchId = null;
         let lastCamX, lastCamY;
 
@@ -114,22 +121,21 @@
             }
         });
 
-        // ДЖОЙСТИК
+        // 2. ДЖОЙСТИК (ЛЕВАЯ ЧАСТЬ)
         const jBase = document.getElementById('joy-base');
         const jStick = document.getElementById('joy-stick');
         let activeJoyTouchId = null;
 
         jBase.addEventListener('touchstart', e => {
-            for (let t of e.changedTouches) {
-                activeJoyTouchId = t.identifier;
-                updateJoy(t);
-            }
+            for (let t of e.changedTouches) { activeJoyTouchId = t.identifier; updateJoy(t); }
         });
-
         jBase.addEventListener('touchmove', e => {
-            for (let t of e.changedTouches) {
-                if (t.identifier === activeJoyTouchId) updateJoy(t);
-            }
+            for (let t of e.changedTouches) { if (t.identifier === activeJoyTouchId) updateJoy(t); }
+        });
+        jBase.addEventListener('touchend', () => {
+            activeJoyTouchId = null;
+            jStick.style.transform = `translate(-50%, -50%)`;
+            moveX = 0; moveZ = 0;
         });
 
         function updateJoy(t) {
@@ -145,23 +151,14 @@
             moveZ = Math.sin(angle) * (dist / 55);
         }
 
-        jBase.addEventListener('touchend', () => {
-            activeJoyTouchId = null;
-            jStick.style.transform = `translate(-50%, -50%)`;
-            moveX = 0; moveZ = 0;
-        });
-
-        // ПРЫЖОК
-        document.getElementById('btn-jump').addEventListener('touchstart', (e) => {
+        // 3. ПРЫЖОК (СТАБИЛЬНЫЙ)
+        document.getElementById('btn-jump').addEventListener('touchstart', e => {
             e.preventDefault();
-            // В kinematic-body прыжок реализуется через временное изменение вектора скорости
-            if (!isDead && rig.body) {
-                rig.body.velocity.y = 7; 
-            }
+            if (!isJumping && !isDead) { velocityY = 0.25; isJumping = true; }
         });
 
-        // СТРЕЛЬБА
-        document.getElementById('btn-fire').addEventListener('touchstart', (e) => {
+        // 4. СТРЕЛЬБА
+        document.getElementById('btn-fire').addEventListener('touchstart', e => {
             e.preventDefault();
             if (isDead) return;
             const flash = document.getElementById('muzzle-flash');
@@ -181,17 +178,32 @@
             }
         });
 
-        // ГЛАВНЫЙ ЦИКЛ
+        // 5. ДВИЖЕНИЕ (БЕЗ ФИЗИКИ, ЧТОБЫ НЕ ЗАСТРЕВАТЬ)
         function engineLoop() {
-            if (!isDead && rig.body) {
-                let angle = camRotY * (Math.PI / 180);
-                let speed = 7;
-                // Применяем горизонтальную скорость к физическому телу
-                let vx = (moveX * Math.cos(angle) + moveZ * Math.sin(angle)) * speed;
-                let vz = (-moveX * Math.sin(angle) + moveZ * Math.cos(angle)) * speed;
+            if (!isDead) {
+                let pos = rig.getAttribute('position');
                 
-                rig.body.velocity.x = vx;
-                rig.body.velocity.z = vz;
+                // Гравитация и прыжок
+                pos.y += velocityY;
+                if (pos.y > 0) {
+                    velocityY -= 0.015;
+                } else {
+                    pos.y = 0; velocityY = 0; isJumping = false;
+                }
+
+                // Ходьба (без коллизии блоков)
+                if (moveX !== 0 || moveZ !== 0) {
+                    let angle = camRotY * (Math.PI / 180);
+                    let speed = 0.25;
+                    pos.x += (moveX * Math.cos(angle) + moveZ * Math.sin(angle)) * speed;
+                    pos.z += (-moveX * Math.sin(angle) + moveZ * Math.cos(angle)) * speed;
+                }
+                
+                // Ограничение только по краям мира (200м)
+                pos.x = Math.max(-200, Math.min(200, pos.x));
+                pos.z = Math.max(-200, Math.min(200, pos.z));
+
+                rig.setAttribute('position', pos);
             }
 
             if (conn && conn.open) {
@@ -200,12 +212,11 @@
             requestAnimationFrame(engineLoop);
         }
 
-        // СЕТЕВАЯ ЧАСТЬ
+        // СЕТЬ
         function startGame(mode) {
-            myNick = document.getElementById('nick-input').value.trim() || "Chick_" + Math.floor(Math.random()*99);
+            myNick = document.getElementById('nick-input').value.trim() || "Chicken" + Math.floor(Math.random()*99);
             document.getElementById('player-name').innerText = myNick;
-            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*9999) : undefined);
-            
+            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*999) : undefined);
             peer.on('open', id => {
                 if (mode === 'host') alert("ID СЕРВЕРА: " + id);
                 else conn = peer.connect(document.getElementById('room-input').value.trim());
@@ -237,12 +248,8 @@
                     hp -= data.dmg;
                     document.getElementById('hp-bar').style.width = hp + "%";
                     if (hp <= 0 && !isDead) {
-                        isDead = true; alert("ТЫ ПОГИБ!");
-                        setTimeout(() => { 
-                            hp = 100; isDead = false; 
-                            document.getElementById('hp-bar').style.width = "100%"; 
-                            rig.setAttribute('position', '5 2 12'); 
-                        }, 3000);
+                        isDead = true; alert("УБИТ!");
+                        setTimeout(() => { hp = 100; isDead = false; document.getElementById('hp-bar').style.width = "100%"; rig.setAttribute('position', '8 2 12'); }, 3000);
                     }
                 }
             });
