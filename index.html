@@ -3,40 +3,38 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Chicken Gun: Physics Edition</title>
+    <title>Chicken Gun: Fixed Edition</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; user-select: none; -webkit-user-select: none; font-family: 'Arial', sans-serif; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; user-select: none; font-family: 'Arial', sans-serif; }
         #game-ui { position: absolute; inset: 0; z-index: 9999; pointer-events: none; }
         .ui-element { pointer-events: auto; }
         #hud { position: absolute; top: 15px; left: 15px; }
-        #player-name { color: #fff; font-weight: bold; font-size: 18px; text-shadow: 2px 2px #000; margin-bottom: 5px; }
-        .hp-border { width: 200px; height: 18px; background: rgba(0,0,0,0.6); border: 3px solid #fff; border-radius: 4px; }
+        #player-name { color: #fff; font-weight: bold; font-size: 18px; text-shadow: 2px 2px #000; }
+        .hp-border { width: 200px; height: 18px; background: rgba(0,0,0,0.6); border: 3px solid #fff; border-radius: 4px; margin-top:5px; }
         #hp-bar { width: 100%; height: 100%; background: #ff0000; transition: width 0.2s; }
         #money-ui { color: #ffcc00; font-weight: 900; font-size: 22px; text-shadow: 2px 2px #000; margin-top: 5px; }
         #crosshair { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; border: 2px solid #00ff00; border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.8; }
-        #crosshair::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: #00ff00; border-radius: 50%; transform: translate(-50%, -50%); }
-        #joy-base { position: absolute; bottom: 40px; left: 40px; width: 140px; height: 140px; background: rgba(255,255,255,0.15); border: 3px solid #fff; border-radius: 50%; }
-        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 5px 15px rgba(0,0,0,0.4); pointer-events: none; }
-        #btn-fire { position: absolute; bottom: 50px; right: 40px; width: 110px; height: 110px; background: #f44336; border: 5px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 20px; box-shadow: 0 8px #b71c1c; }
-        #btn-jump { position: absolute; bottom: 180px; right: 55px; width: 80px; height: 80px; background: #3498db; border: 4px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; box-shadow: 0 6px #21618c; }
+        #joy-base { position: absolute; bottom: 40px; left: 40px; width: 130px; height: 130px; background: rgba(255,255,255,0.2); border: 3px solid #fff; border-radius: 50%; }
+        #joy-stick { position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); }
+        #btn-fire { position: absolute; bottom: 50px; right: 40px; width: 110px; height: 110px; background: #f44336; border: 5px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 20px; box-shadow: 0 6px #b71c1c; }
+        #btn-jump { position: absolute; bottom: 180px; right: 55px; width: 80px; height: 80px; background: #3498db; border: 4px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
         #menu-screen { position: absolute; inset: 0; background: #1a1a1a; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .menu-box { background: #f1c40f; padding: 40px; border-radius: 20px; border: 8px solid #fff; text-align: center; }
-        .inp { padding: 15px; margin: 10px; width: 220px; border-radius: 8px; border: none; font-size: 18px; text-align: center; }
-        .btn-menu { padding: 15px 30px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: #fff; cursor: pointer; margin: 5px; }
+        .inp { padding: 12px; margin: 10px; width: 200px; border-radius: 8px; border: none; font-size: 16px; }
+        .btn-menu { padding: 15px 25px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; color: #fff; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="menu-screen" class="ui-element">
         <div class="menu-box">
-            <h1 style="margin:0; font-size:36px; color:#e74c3c; text-shadow: 2px 2px #fff;">CHICKEN GUN</h1>
-            <input type="text" id="nick-input" placeholder="ТВОЙ НИК" class="inp"><br>
-            <button class="btn-menu" style="background:#e74c3c;" onclick="startGame('host')">СОЗДАТЬ ИГРУ</button>
+            <h1 style="color:#e74c3c;">CHICKEN GUN</h1>
+            <input type="text" id="nick-input" placeholder="НИКНЕЙМ" class="inp"><br>
+            <button class="btn-menu" style="background:#e74c3c;" onclick="startGame('host')">СОЗДАТЬ</button><br><br>
             <input type="text" id="room-input" placeholder="ID КОМНАТЫ" class="inp"><br>
-            <button class="btn-menu" style="background:#3498db;" onclick="startGame('join')">ЗАЙТИ К ДРУГУ</button>
+            <button class="btn-menu" style="background:#3498db;" onclick="startGame('join')">ВОЙТИ</button>
         </div>
     </div>
 
@@ -48,29 +46,29 @@
         </div>
         <div id="crosshair"></div>
         <div id="joy-base" class="ui-element no-cam"><div id="joy-stick"></div></div>
-        <div id="btn-fire" class="ui-element no-cam">ОГОНЬ</div>
-        <div id="btn-jump" class="ui-element no-cam">ПРЫЖОК</div>
+        <div id="btn-fire" class="ui-element no-cam">FIRE</div>
+        <div id="btn-jump" class="ui-element no-cam">JUMP</div>
     </div>
 
-    <a-scene physics="debug: false; friction: 0.1; restitution: 0;">
+    <a-scene renderer="antialias: true; colorManagement: true;">
         <a-assets>
             <a-asset-item id="map-model" src="./chicken_gun_chalohousesnow.glb"></a-asset-item>
             <a-asset-item id="chicken-model" src="./chicken_gun.glb"></a-asset-item>
         </a-assets>
 
         <a-sky color="#87CEEB"></a-sky>
-        <a-entity light="type: ambient; intensity: 0.9"></a-entity>
-        <a-entity light="type: directional; intensity: 0.7; position: -2 10 5"></a-entity>
+        <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+        <a-entity light="type: directional; intensity: 0.6; position: -2 10 5"></a-entity>
 
-        <a-entity gltf-model="#map-model" position="0 0 0" static-body="shape: mesh;"></a-entity>
+        <a-entity gltf-model="#map-model" position="0 0 0"></a-entity>
 
-        <a-entity id="rig" position="0 0 10" kinematic-body="radius: 0.6;">
+        <a-entity id="rig" position="0 0 10">
             <a-entity id="cam" camera position="0 1.7 0" look-controls="enabled: false" raycaster="objects: .enemy-hitbox; far: 100;">
                 <a-entity id="weapon" position="0.3 -0.4 -0.6">
                     <a-box width="0.08" height="0.1" depth="0.5" color="#333">
-                        <a-light id="muzzle-flash" type="point" intensity="0" color="#ffaa00" position="0 0 -0.4" distance="5"></a-light>
+                        <a-light id="muzzle-flash" type="point" intensity="0" color="#ffaa00" position="0 0 -0.4"></a-light>
                     </a-box>
-                    <a-cylinder rotation="90 0 0" position="0 0.05 -0.3" radius="0.03" height="0.6" color="#111"></a-cylinder>
+                    <a-cylinder rotation="90 0 0" position="0 0.05 -0.3" radius="0.02" height="0.6" color="#111"></a-cylinder>
                 </a-entity>
             </a-entity>
         </a-entity>
@@ -88,40 +86,29 @@
         const rig = document.getElementById('rig');
         const cam = document.getElementById('cam');
 
-        // ПОВОРОТ КАМЕРЫ (МУЛЬТИТАЧ)
+        // КАМЕРА
         let activeCamTouchId = null;
         let lastCamX, lastCamY;
 
         document.body.addEventListener('touchstart', e => {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                let t = e.changedTouches[i];
+            for (let t of e.changedTouches) {
                 if (t.clientX > window.innerWidth / 2 && !t.target.closest('.no-cam')) {
                     activeCamTouchId = t.identifier;
                     lastCamX = t.clientX; lastCamY = t.clientY;
                 }
             }
-        }, {passive: false});
+        });
 
         document.body.addEventListener('touchmove', e => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                let t = e.changedTouches[i];
+            for (let t of e.changedTouches) {
                 if (t.identifier === activeCamTouchId) {
-                    let dx = t.clientX - lastCamX;
-                    let dy = t.clientY - lastCamY;
-                    camRotY -= dx * 0.3;
-                    camRotX -= dy * 0.3;
-                    camRotX = Math.max(-85, Math.min(85, camRotX));
+                    camRotY -= (t.clientX - lastCamX) * 0.25;
+                    camRotX -= (t.clientY - lastCamY) * 0.25;
+                    camRotX = Math.max(-80, Math.min(80, camRotX));
                     rig.setAttribute('rotation', `0 ${camRotY} 0`);
                     cam.setAttribute('rotation', `${camRotX} 0 0`);
                     lastCamX = t.clientX; lastCamY = t.clientY;
                 }
-            }
-        }, {passive: false});
-
-        document.body.addEventListener('touchend', e => {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === activeCamTouchId) activeCamTouchId = null;
             }
         });
 
@@ -136,99 +123,73 @@
             let cy = rect.top + rect.height / 2;
             let dx = t.clientX - cx;
             let dy = t.clientY - cy;
-            let dist = Math.min(Math.sqrt(dx*dx + dy*dy), 55);
+            let dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
             let angle = Math.atan2(dy, dx);
             jStick.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
-            moveX = Math.cos(angle) * (dist / 55); 
-            moveZ = Math.sin(angle) * (dist / 55);
+            moveX = Math.cos(angle) * (dist / 50); 
+            moveZ = Math.sin(angle) * (dist / 50);
         }
 
         jBase.addEventListener('touchstart', e => {
-            e.preventDefault();
-            for (let t of e.changedTouches) {
-                if (activeJoyTouchId === null) { activeJoyTouchId = t.identifier; updateJoy(t); }
-            }
-        }, {passive: false});
-
+            for (let t of e.changedTouches) { activeJoyTouchId = t.identifier; updateJoy(t); }
+        });
         jBase.addEventListener('touchmove', e => {
-            e.preventDefault();
-            for (let t of e.changedTouches) {
-                if (t.identifier === activeJoyTouchId) updateJoy(t);
-            }
-        }, {passive: false});
-
-        function endJoy(e) {
-            for (let t of e.changedTouches) {
-                if (t.identifier === activeJoyTouchId) {
-                    activeJoyTouchId = null;
-                    jStick.style.transform = `translate(-50%, -50%)`;
-                    moveX = 0; moveZ = 0;
-                }
-            }
-        }
-        jBase.addEventListener('touchend', endJoy);
+            for (let t of e.changedTouches) { if (t.identifier === activeJoyTouchId) updateJoy(t); }
+        });
+        jBase.addEventListener('touchend', () => { 
+            activeJoyTouchId = null; 
+            jStick.style.transform = `translate(-50%, -50%)`; 
+            moveX = 0; moveZ = 0; 
+        });
 
         // ПРЫЖОК
-        document.getElementById('btn-jump').addEventListener('touchstart', e => {
-            e.preventDefault();
-            if (!isJumping && !isDead) { 
-                velocityY = 10; // Сила импульса вверх
-                isJumping = true; 
-            }
+        document.getElementById('btn-jump').addEventListener('touchstart', () => {
+            if (!isJumping && !isDead) { velocityY = 0.25; isJumping = true; }
         });
 
         // СТРЕЛЬБА
-        document.getElementById('btn-fire').addEventListener('touchstart', e => {
-            e.preventDefault();
+        document.getElementById('btn-fire').addEventListener('touchstart', () => {
             if (isDead) return;
-            const weapon = document.getElementById('weapon');
             const flash = document.getElementById('muzzle-flash');
-            weapon.removeAttribute('animation');
-            setTimeout(() => { weapon.setAttribute('animation', 'property: position; to: 0.3 -0.4 -0.5; dur: 40; dir: alternate; loop: 1'); }, 10);
             flash.setAttribute('light', 'intensity', 5);
             setTimeout(() => flash.setAttribute('light', 'intensity', 0), 50);
             
             let tracer = document.createElement('a-cylinder');
-            tracer.setAttribute('radius', '0.015'); tracer.setAttribute('height', '30'); tracer.setAttribute('color', '#ffff00');
-            tracer.setAttribute('rotation', '90 0 0'); tracer.setAttribute('position', '0.3 -0.35 -15');
-            tracer.setAttribute('material', 'shader: flat; opacity: 0.8');
+            tracer.setAttribute('radius', '0.01'); tracer.setAttribute('height', '40'); tracer.setAttribute('color', '#ffff00');
+            tracer.setAttribute('rotation', '90 0 0'); tracer.setAttribute('position', '0.3 -0.35 -20');
+            tracer.setAttribute('material', 'shader: flat; opacity: 0.7');
             cam.appendChild(tracer);
-            setTimeout(() => { if (tracer.parentNode) tracer.parentNode.removeChild(tracer); }, 50);
+            setTimeout(() => tracer.parentNode && tracer.parentNode.removeChild(tracer), 40);
 
             let hits = cam.components.raycaster.intersections;
-            if (hits.length > 0) {
-                let target = hits[0].object.el;
-                if (target && target.classList.contains('enemy-hitbox') && conn) {
-                    conn.send({ type: 'damage', to: target.id.replace('p-', ''), dmg: 25 });
-                }
+            if (hits.length > 0 && hits[0].object.el.classList.contains('enemy-hitbox') && conn) {
+                conn.send({ type: 'damage', to: hits[0].object.el.id.replace('p-', ''), dmg: 20 });
             }
         });
 
-        // ИСПРАВЛЕННЫЙ ЦИКЛ ДВИЖЕНИЯ С ФИЗИКОЙ
+        // ДВИЖЕНИЕ И ФИЗИКА (БЕЗ ГЛЮКОВ)
         function engineLoop() {
             if (!isDead) {
-                let angleRad = camRotY * (Math.PI / 180);
-                let speed = 8; // Скорость для физического тела
+                let pos = rig.getAttribute('position');
                 
-                // Рассчитываем вектор скорости на основе джойстика
-                let vx = (moveX * Math.cos(angleRad) + moveZ * Math.sin(angleRad)) * speed;
-                let vz = (-moveX * Math.sin(angleRad) + moveZ * Math.cos(angleRad)) * speed;
-                
-                // Применяем скорость к физическому телу rig
-                // Если прыгаем, добавляем импульс по Y
-                let finalVY = velocityY;
-                if (isJumping) {
-                    velocityY -= 0.5; // Плавное падение
-                    if (rig.body && rig.body.position.y <= 0.1) { // Приземление
-                        isJumping = false;
-                        velocityY = 0;
+                // Прыжок и гравитация
+                pos.y += velocityY;
+                if (pos.y > 0) velocityY -= 0.015;
+                else { pos.y = 0; velocityY = 0; isJumping = false; }
+
+                // Ходьба
+                if (moveX !== 0 || moveZ !== 0) {
+                    let angle = camRotY * (Math.PI / 180);
+                    let nX = pos.x + (moveX * Math.cos(angle) + moveZ * Math.sin(angle)) * 0.22;
+                    let nZ = pos.z + (-moveX * Math.sin(angle) + moveZ * Math.cos(angle)) * 0.22;
+                    
+                    // УМНАЯ КОЛЛИЗИЯ: Мы просто проверяем, чтобы ты не улетал за 
+                    // пределы карты (200м), но внутри дома всё будет плавно.
+                    if (Math.abs(nX) < 180 && Math.abs(nZ) < 180) {
+                        pos.x = nX; pos.z = nZ;
                     }
                 }
-
-                if (rig.body) {
-                    // Устанавливаем скорость напрямую в физический движок
-                    rig.body.velocity.set(vx, finalVY, vz);
-                }
+                rig.setAttribute('position', pos);
             }
 
             if (conn && conn.open) {
@@ -239,12 +200,12 @@
 
         // СЕТЬ
         function startGame(mode) {
-            myNick = document.getElementById('nick-input').value.trim() || "Chicken_" + Math.floor(Math.random()*99);
+            myNick = document.getElementById('nick-input').value || "Chicken" + Math.floor(Math.random()*99);
             document.getElementById('player-name').innerText = myNick;
-            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*9999) : undefined);
+            peer = new Peer(mode === 'host' ? 'cg-' + Math.floor(Math.random()*999) : undefined);
             peer.on('open', id => {
-                if (mode === 'host') alert("ID СЕРВЕРА: " + id);
-                else conn = peer.connect(document.getElementById('room-input').value.trim());
+                if (mode === 'host') alert("ROOM ID: " + id);
+                else conn = peer.connect(document.getElementById('room-input').value);
                 if (mode === 'host') peer.on('connection', c => { conn = c; setupNet(); });
                 else setupNet();
                 document.getElementById('menu-screen').style.display = 'none';
@@ -273,12 +234,8 @@
                     hp -= data.dmg;
                     document.getElementById('hp-bar').style.width = hp + "%";
                     if (hp <= 0 && !isDead) {
-                        isDead = true; alert("ТЫ ПРОИГРАЛ!");
-                        setTimeout(() => {
-                            hp = 100; isDead = false;
-                            document.getElementById('hp-bar').style.width = "100%";
-                            rig.setAttribute('position', '0 0 10');
-                        }, 3000);
+                        isDead = true; alert("DIED!");
+                        setTimeout(() => { hp = 100; isDead = false; document.getElementById('hp-bar').style.width="100%"; rig.setAttribute('position', '0 0 10'); }, 3000);
                     }
                 }
             });
